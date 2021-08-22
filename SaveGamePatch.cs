@@ -20,7 +20,7 @@ namespace ColorizerMod
 
         static void Postfix(Mainframe __instance, Transform item) {
             try {
-                string filepath = __instance.GetFolderName() + Conf.saveFilename + "?tag=id_";
+                string filepath = __instance.GetFolderName() + Conf.saveFilename.Value + "?tag=id_";
 
                 List<Material> materials = Util.GetChildrenMats(item, true);
                 if (materials.Count == 0) {
@@ -49,7 +49,7 @@ namespace ColorizerMod
     {
         static void Postfix(Mainframe __instance, int id, Transform __result) {
             try {
-                string filepath = __instance.GetFolderName() + Conf.saveFilename + "?tag=id_";
+                string filepath = __instance.GetFolderName() + Conf.saveFilename.Value + "?tag=id_";
             if (!ES2.Exists(filepath + "colors_" + id) || !ES2.Exists(filepath + "floats_" + id)) {
                     return;
                 }

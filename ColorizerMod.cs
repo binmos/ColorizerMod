@@ -15,7 +15,7 @@ namespace ColorizerMod
 {
     // Configuration variables
     public static class Conf {
-        public static int ModNexusId = -1;
+        public static int ModNexusId = 90;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -23,6 +23,7 @@ namespace ColorizerMod
 
         public static ConfigEntry<bool> disableCustomizationButtons;
         public static ConfigEntry<bool> showExperimentalToggle;
+        public static ConfigEntry<bool> refreshInventory;
 
         public static ConfigEntry<string> openWindowKeyBind;
         public static ConfigEntry<bool> openWindow;
@@ -38,7 +39,7 @@ namespace ColorizerMod
         public static ConfigEntry<int> guiToggleFontSize;
     }
 
-    [BepInPlugin("binmo.ColorizerMod", "Colorizer Mod", "0.1.0")]
+    [BepInPlugin("binmos.ColorizerMod", "Colorizer Mod", "0.1.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -66,6 +67,9 @@ namespace ColorizerMod
                        "Keybind to open the colorizer window (Only does stuff in the inventory menu).\n"
                        );
 
+            Conf.refreshInventory = Config.Bind("Options", "Refresh Inventory Workaround", true, 
+                        "Refreshes the inventory when you first open the window, in an attempt to fix a bug that occurs in the base game where colors don't update instantly.\n"+
+                        "If this occurs to you, just click on the portrait of the character again and the colors should start updating (usually).");
 
             Conf.saveFilename = Config.Bind("Options", "Save Filename", "ColorizerModData.txt",
                         "This mod uses a standalone file to save its data. You can change it here.\n" +
@@ -74,12 +78,13 @@ namespace ColorizerMod
 
             Conf.openWindow = Config.Bind("Utility", "Open Window", false, "Press this to open the window while you are in the inventory");
             
+            
             Conf.guiWindowSize = Config.Bind("Gui", "Window Size", new Vector2(700.0f, 800.0f), "Colorizer window size");
             Conf.guiColumnSize = Config.Bind("Gui", "Column Size", 175.0f, "Size of the left (text) column in the window.");
             
 
             Conf.guiLabelFontSize = Config.Bind("Gui",  "Label Font Size", 12, "Font size for most of the stuff in colorizer window");
-            Conf.guiToggleFontSize = Config.Bind("Gui", "Item Font Size", 14, "Font size for item names in the window. (Also help text)");
+            Conf.guiToggleFontSize = Config.Bind("Gui", "Item Font Size", 14, "Font size for item names in the window.");
 
             
             Conf.openWindow.SettingChanged += (_, __) => {
@@ -90,11 +95,11 @@ namespace ColorizerMod
             };
 
             _hi = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-            Util.Log("binmo.ColorizerMod: Loaded.");
+            Util.Log("binmos.ColorizerMod: Loaded.");
         }
 
         void OnDestroy() {
-            Util.Log("binmo.ColorizerMod: Unpatching.");
+            Util.Log("binmos.ColorizerMod: Unpatching.");
             _hi?.UnpatchSelf();
         }
 
@@ -137,28 +142,37 @@ namespace ColorizerMod
         static CharacterCustomization Customization;
 
 
-        static bool GUI_hasInit = false;
+        static bool GUI_lastFrameShow = false;
+        
 
         void OnGUI() {
             try {
                 bool canShow = Global.code.uiInventory && Global.code.uiInventory.gameObject.activeSelf && Global.code.uiInventory.curCustomization;
                 if (!canShow) {
+                    GUI_lastFrameShow = false;
                     return;
                 }
             }
             catch {
+                GUI_lastFrameShow = false;
                 return;
             }
-
+            
             if (Conf.openWindow.Value) {
                 GUI_show = true;
             }
 
             if (!GUI_show) {
+                GUI_lastFrameShow = false;
                 return;
             }
-
+            
             Customization = Global.code.uiInventory.curCustomization;
+            if (!GUI_lastFrameShow && Conf.refreshInventory.Value) {
+                Global.code.uiInventory.Open(Customization);
+            }
+            GUI_lastFrameShow = true;
+
 
             GUI.skin.label.fontSize = Conf.guiLabelFontSize.Value;
             GUI.skin.toggle.fontSize = Conf.guiToggleFontSize.Value;
@@ -173,7 +187,7 @@ namespace ColorizerMod
             innerRect.x += borderOffset;
             innerRect.y += borderOffset;
 
-            // This sometimes breaks but I have not figured out a way to fix it.
+            // This sometimes breaks but I have not figured out a way to fix it
             GUI_bgStyle =  new GUIStyle {
                 normal = new GUIStyleState {
                     background = MakeTex(1, 1, new Color(0.23f, 0.18f, 0.10f, 0.9f))
@@ -211,7 +225,7 @@ namespace ColorizerMod
             // Use bigger font for help text.
             GUI.skin.label.fontSize = Conf.guiToggleFontSize.Value;
             GUILayout.BeginVertical();
-            GUILayout.Label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vehicula pretium accumsan. Mauris ut velit sed magna pellentesque suscipit sed scelerisque risus. Suspendisse blandit at eros eget auctor. Morbi euismod viverra dui, a iaculis augue aliquam posuere. Morbi in hendrerit ligula. Maecenas dapibus congue tellus, vitae commodo ligula posuere eu. Duis ante magna, pulvinar ut augue et, blandit ultrices libero. Mauris euismod imperdiet mollis. Praesent tincidunt, libero a tempus consequat, erat sapien porta lectus, eget pellentesque lorem mi posuere mauris. Quisque luctus ex a justo accumsan, sed hendrerit mi consectetur. Ut fermentum lacus non varius tempus. Donec sit amet mi et velit laoreet congue vel nec lacus. Proin sagittis ut est vel accumsan. Nunc finibus placerat faucibus.Vivamus volutpat nisl vitae urna laoreet, at accumsan metus laoreet.Vestibulum elementum hendrerit nunc.Quisque et velit interdum, fermentum purus sed, scelerisque arcu.Ut ut imperdiet diam, rhoncus mollis dolor.Nam faucibus lacus dui, faucibus euismod risus tincidunt quis.Sed sem ex, ullamcorper ac iaculis vel, lobortis in neque.Quisque facilisis dictum bibendum.Quisque hendrerit augue ultricies, tristique urna ut, scelerisque tortor.Nulla et nunc ac dolor imperdiet lacinia.Donec accumsan lacus sed neque mattis tempus.Fusce metus sem, ornare ac ultricies eu, efficitur non neque.Suspendisse at felis id turpis maximus scelerisque eget et nibh.Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;");
+            GUILayout.Label("Some info about how to use this mod is available on the mod page on nexus mods. Sorry I didn't have time to provide a good help section in this panel.\n\nIf you want to reset everything back to normal, disable the mod from the configurator and then save & reload the game. Good luck! :) ");
             GUILayout.FlexibleSpace();
             GUILayout.EndVertical();
         }

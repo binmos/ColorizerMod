@@ -58,7 +58,7 @@ namespace ClothShaders
     // NOTE 2: This should be extended to store a callback func.
     class ColorPicker
     {
-        static string ColorizerModBtnValue = "binmo.ColorizerMod";
+        static string ColorizerModBtnValue = "binmos.ColorizerMod";
 
         
         public static void Open(Color withColor) {
