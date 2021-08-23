@@ -19,6 +19,10 @@ namespace ColorizerMod
         // I would also like to impelement a struct that can be extended easier than padding 2x floats, but es2 is annoying.
 
         static void Postfix(Mainframe __instance, Transform item) {
+            if (!Conf.modEnabled.Value) {
+                return;
+            }
+
             try {
                 string filepath = __instance.GetFolderName() + Conf.saveFilename.Value + "?tag=id_";
 
@@ -48,9 +52,14 @@ namespace ColorizerMod
     static class PatchLoadItem
     {
         static void Postfix(Mainframe __instance, int id, Transform __result) {
+            if (!Conf.modEnabled.Value) {
+                return;
+            }
+
             try {
                 string filepath = __instance.GetFolderName() + Conf.saveFilename.Value + "?tag=id_";
-            if (!ES2.Exists(filepath + "colors_" + id) || !ES2.Exists(filepath + "floats_" + id)) {
+                
+                if (!ES2.Exists(filepath + "colors_" + id) || !ES2.Exists(filepath + "floats_" + id)) {
                     return;
                 }
 

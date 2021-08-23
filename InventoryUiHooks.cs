@@ -14,6 +14,10 @@ namespace ClothShaders
     class InventoryHook
     {
         static void Postfix(UIInventory __instance) {
+            if (!Conf.modEnabled.Value) {
+                return;
+            }
+
             // Add a modifier key?
             // Also, maybe we could do this OnGUI and check if the user in the inventory screen?
             if (Util.CheckKeyDown(Conf.openWindowKeyBind.Value)) {
@@ -23,33 +27,29 @@ namespace ClothShaders
 
     }
 
-    // Hook customization & makeup buttons to disable them while the window is open. 
-    // They usually get clicked behind the window.
-    // This is a workaround for now until I can actually find a way to disable mouse passthrough.
 
-    [HarmonyPatch(typeof(UIInventory), nameof(UIInventory.ButtonCustomization))]
-    class InventoryDisableCustomization
+
+    [HarmonyPatch]
+    class DisableClickthoughMultiPatch
     {
-        static bool Prefix(UIInventory __instance) {
-            if (BepInExPlugin.GUI_show) {
-                return false;
-            }
-            return true;
+        static IEnumerable<MethodBase> TargetMethods() {
+            // Its kinda shit to hook all these functions, but I can't think of another way right now.
+            var result = 
+                typeof(UIInventory).GetMethods()
+                    .Where(method => method.ReturnType == typeof(void) && method.Name.StartsWith("Button")) // all functions that return void and their name starts with "Button"
+                    .Cast<MethodBase>();
+            return result;
         }
 
-    }
 
-    [HarmonyPatch(typeof(UIInventory), nameof(UIInventory.ButtonMakeup))]
-    class InventoryDisableMakeup
-    {
-        static bool Prefix(UIInventory __instance) {
-            if (BepInExPlugin.GUI_show) {
-                return false;
+        static bool Prefix(MethodBase __originalMethod) {
+            if (!BepInExPlugin.ShouldCaptureMouse()) {
+                return true;
             }
-            return true;
+            return false;
         }
-
     }
+
 
     // Currently unused, can be integrated but we would have to somehow solve the vibrance problem. (also i cba to fix the pointer being in the wrong position every time)
     // Left here to be used in the future by me (or other modders, feel free!). Didn't feel like wasting all this time spent researching.

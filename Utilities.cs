@@ -94,6 +94,50 @@ namespace ColorizerMod
                 Log("> " + mat.name + "\n\t\tSpecularC : " + mat.GetColor("_SpecularColor"));
             }
         }
+
+        public static Color ToHsv(Color RGBA) {
+            Color result;
+
+            float H, S, V;
+            Color.RGBToHSV(RGBA, out H, out S, out V);
+            result.r = H;
+            result.g = S;
+            result.b = V;
+            result.a = RGBA.a;
+            return result;
+        }
+
+        public static Color ToRgb(Color HSVA) {
+            Color result = Color.HSVToRGB(HSVA.r, HSVA.g, HSVA.b);
+            result.a = HSVA.a;
+            return result;
+        }
     }
 
+
+
+
+
+    static class Help
+    {
+        public static string helpString =
+            @"
+CHANGELOG: v 0.2.0
+
+FIXES:
+* Fix mod enabled config setting not actually doing anything. (Oops, sorry about that)
+* Fix a texture issue with the gui that made the game go black in a few cases.
+* Mouse Blocking now works only blocks clicks inside the window area.This also includes camera buttons on the left and a few more buttons.
+* Window no longer opens in trading screens.
+
+NEW:
+* Reset button is no longer experimental. (It does nothing if other armor mods interfere with armors)
+* Add a config setting for initial window visiblity after game launch.
+* Mass edit category now only modifies the edited column (instead of all columns together)
+
+
+HOW TO USE:
+Info about how to use this mod is available on the mod page on nexus mods. 
+";
+    }
 }
